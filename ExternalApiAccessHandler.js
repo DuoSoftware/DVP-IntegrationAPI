@@ -8,6 +8,38 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var httpReq = require('request');
 var async = require('async');
 
+var val = null;
+
+var traverseObject = function(obj, param, isInner)
+{
+    for (var property in obj)
+    {
+        if (obj.hasOwnProperty(property))
+        {
+            if(property === param && typeof obj[property] !== "object")
+            {
+                val = obj[property];
+                break;
+            }
+            else
+            {
+                if(typeof obj[property] === "object")
+                {
+                    val = traverseObject(obj[property], param, true);
+                    break;
+                }
+            }
+        }
+    }
+
+    if(!isInner)
+    {
+        return val;
+    }
+};
+
+
+
 var callApiMethod = function(reqId, url, method, parameters, inputObject, callback)
 {
     var payload = {};
@@ -22,7 +54,7 @@ var callApiMethod = function(reqId, url, method, parameters, inputObject, callba
 
             if(profile)
             {
-                paramValue = profile[param.referenceName];
+                paramValue = traverseObject(profile, param.referenceName, false);
             }
         }
 
@@ -74,6 +106,18 @@ var callApiMethod = function(reqId, url, method, parameters, inputObject, callba
 
     })
 };
+
+/*callApiMethod('dsfd', 'dfsf', 'POST', [{
+
+    name: 'param1',
+    referenceName: 'param1',
+    parameterLocation: 'QUERY',
+    parameterType: 'PROFILE'
+
+}], {PROFILE: {name: 'sdsssds', age: 'sdsdsds', param2: 'dfdsfdsfd', param3: {param4: 'dsdssd', param1: '2222222', param66: 'sdsdsd'}, param55: 'dsdsd'}}, function(err, resp)
+{
+    console.log(res);
+});*/
 
 var generateAPICalls = function(reqId, apiDetails, inputObject)
 {

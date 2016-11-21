@@ -11,17 +11,21 @@ var externalApiHandler = require('./ExternalApiAccessHandler.js');
 var jwt = require('restify-jwt');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
+var util = require('util');
 
 var server = restify.createServer({
     name: "DVP Integration API"
 });
 
-server.pre(restify.pre.userAgentConnection());
-server.use(restify.queryParser());
-server.use(restify.bodyParser({ mapParams: false }));
+var server = restify.createServer({
+    name: 'localhost',
+    version: '1.0.0'
+});
+
+var hostIp = config.Host.Ip;
+var hostPort = config.Host.Port;
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
-restify.CORS.ALLOW_HEADERS.push('companyinfo');
 server.use(restify.CORS());
 server.use(restify.fullResponse());
 server.use(restify.acceptParser(server.acceptable));
@@ -29,10 +33,38 @@ server.use(restify.queryParser());
 server.use(restify.bodyParser());
 server.use(jwt({secret: secret.Secret}));
 
-server.use(jwt({secret: secret.Secret}));
+var mongoip=config.Mongo.ip;
+var mongoport=config.Mongo.port;
+var mongodb=config.Mongo.dbname;
+var mongouser=config.Mongo.user;
+var mongopass = config.Mongo.password;
 
-var hostIp = config.Host.Ip;
-var hostPort = config.Host.Port;
+
+
+var mongoose = require('mongoose');
+var connectionstring = util.format('mongodb://%s:%s@%s:%d/%s',mongouser,mongopass,mongoip,mongoport,mongodb)
+
+
+mongoose.connection.on('error', function (err) {
+    throw new Error(err);
+});
+
+mongoose.connection.on('disconnected', function() {
+    throw new Error('Could not connect to database');
+});
+
+mongoose.connection.once('open', function() {
+    console.log("Connected to db");
+});
+
+
+mongoose.connect(connectionstring);
+
+server.listen(hostPort, hostIp, function () {
+    console.log('%s listening at %s', server.name, server.url);
+});
+
+
 
 
 server.post('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({resource:"integration", action:"write"}), function(req, res, next)
@@ -122,7 +154,7 @@ server.put('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
     return next();
 });
 
-server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization({resource:"integration", action:"write"}), function(req, res, next)
+server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization({resource:"integration", action:"delete"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try
@@ -165,7 +197,7 @@ server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
     return next();
 });
 
-server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({resource:"integration", action:"write"}), function(req, res, next)
+server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({resource:"integration", action:"read"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try
@@ -201,6 +233,51 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({re
     {
         var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
         logger.error('[DVP-IntegrationAPI.GetIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo/Reference/:refName', authorization({resource:"integration", action:"read"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.debug('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+
+
+        var refName = req.params.refName;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.getIntegrationAPIDetailsByRef(reqId, companyId, tenantId, refName)
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
+                logger.debug('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error getting data", false, null);
+                logger.error('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - API RESPONSE : %s', reqId, jsonString);
         res.end(jsonString);
     }
 
@@ -255,10 +332,64 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPIs', authorization({resource
     return next();
 });
 
+server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        /*logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
+        var json = {
+            Name: "Dinusha Kannangara",
+            Gender: "Male",
+            Active: true,
+            Company: "Duo Software"
+        };
 
+        var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, json);
+        res.end(jsonString);*/
 
-server.listen(hostPort, hostIp, function () {
+        logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
 
-    logger.info("DVP-IntegrationAPI Server %s listening at %s", server.name, server.url);
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var id = req.params.id;
 
+        var extraData = req.body;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.getIntegrationAPIDetailsById(reqId, id, companyId, tenantId)
+            .then(function(resp)
+            {
+                var tempArr = [];
+                tempArr.push(resp);
+                return externalApiHandler.generateAPICalls(reqId, tempArr, extraData);
+
+            })
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
+                logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error getting data", false, null);
+                logger.error('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
 });
