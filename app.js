@@ -14,12 +14,9 @@ var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var util = require('util');
 
-var server = restify.createServer({
-    name: "DVP Integration API"
-});
 
 var server = restify.createServer({
-    name: 'localhost',
+    name: 'DVP Integration API',
     version: '1.0.0'
 });
 
