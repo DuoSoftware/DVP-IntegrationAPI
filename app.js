@@ -8,6 +8,7 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var integrationOpHandler = require('./IntegrationAPIOperations.js');
 var externalApiHandler = require('./ExternalApiAccessHandler.js');
+var externalProfileHandler = require('./ExternalProfileHandler.js');
 var jwt = require('restify-jwt');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
@@ -388,6 +389,33 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
     {
         var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
         logger.error('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.get('/DVP/API/:version/Profile/External', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+
+        logger.debug('getAdditionalProfileData - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        externalProfileHandler.getAdditionalProfileData(req,res);
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('getAdditionalProfileData - [%s] - API RESPONSE : %s', reqId, jsonString);
         res.end(jsonString);
     }
 

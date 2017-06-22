@@ -19,11 +19,12 @@
   "dependencies": {
     "async": "^2.1.2",
     "bluebird": "^3.4.6",
-    "config": "^1.24.0",
-    "dvp-common": "^0.5.6",
+    "config": "^1.26.1",
+    "dvp-common": "^0.5.8",
     "dvp-mongomodels": "^3.7.2",
     "mongoose": "^4.6.8",
-    "node-uuid": "^1.4.7",
+    "node-uuid": "^1.4.8",
+    "request": "^2.81.0",
     "restify": "^4.3.0",
     "restify-jwt": "^0.4.0",
     "underscore": "^1.8.3"
