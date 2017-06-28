@@ -392,7 +392,7 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
     return next();
 });
 
-server.get('/DVP/API/:version/Profile/External', authorization({resource:"integration", action:"write"}), function(req, res, next)
+server.get('/DVP/API/:version/IntegrationAPI/Profile/External/:Reference', authorization({resource:"integration", action:"write"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try

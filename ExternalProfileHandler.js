@@ -11,7 +11,7 @@ module.exports.getAdditionalProfileData = function (req, res) {
 
     var options = {
         method: "GET",
-        uri: config.ExternalProfile.url,
+        uri: config.ExternalProfile.url + req.params.Reference,
         headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -27,9 +27,8 @@ module.exports.getAdditionalProfileData = function (req, res) {
             logger.error("getAdditionalProfileData - [%s] - [%s] - Error.", response, body, error);
             res.end(jsonString);
         } else {
-
             logger.info("getAdditionalProfileData - [%s]", response);
-            jsonString = messageFormatter.FormatMessage(null, "Done", true, JSON.parse(body));
+            jsonString = response.statusCode == 200 ? body : messageFormatter.FormatMessage(null, "EXCEPTION", false, null);
             res.end(jsonString);
         }
     });
