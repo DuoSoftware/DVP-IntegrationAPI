@@ -6,6 +6,8 @@ var request = require("request");
 var config = require("config");
 var logger = require("dvp-common/LogHandler/CommonLogHandler.js").logger;
 var messageFormatter = require("dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js");
+var integrationOpHandler = require('./IntegrationAPIOperations.js');
+var uuid = require('node-uuid');
 
 module.exports.getAdditionalProfileData = function (req, res) {
 

@@ -39,11 +39,11 @@ var saveIntegrationAPIDetails = function(reqId, apiInfo, companyId, tenantId)
 
 
 
-var getIntegrationAPIDetails = function(reqId, companyId, tenantId)
+var getIntegrationAPIDetails = function(reqId,referenceType, companyId, tenantId)
 {
     return new Promise(function(fulfill, reject)
     {
-        IntegrationData.find({company: companyId, tenant: tenantId}, function(err, resp)
+        IntegrationData.find({company: companyId, tenant: tenantId,referenceType:referenceType}, function(err, resp)
         {
             if (err)
             {

@@ -21,7 +21,7 @@
     "bluebird": "^3.4.6",
     "config": "^1.26.1",
     "dvp-common": "^0.5.8",
-    "dvp-mongomodels": "^3.7.2",
+    "dvp-mongomodels": "^4.8.22",
     "mongoose": "^4.6.8",
     "node-uuid": "^1.4.8",
     "request": "^2.81.0",

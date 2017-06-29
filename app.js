@@ -282,7 +282,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo/Reference/:refName'
     return next();
 });
 
-server.post('/DVP/API/:version/IntegrationAPI/CallAPIs', authorization({resource:"integration", action:"write"}), function(req, res, next)
+server.post('/DVP/API/:version/IntegrationAPI/:referenceType/CallAPIs', authorization({resource:"integration", action:"write"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try
@@ -299,10 +299,21 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPIs', authorization({resource
             throw new Error("Invalid company or tenant");
         }
 
-        integrationOpHandler.getIntegrationAPIDetails(reqId, companyId, tenantId)
+        integrationOpHandler.getIntegrationAPIDetails(reqId,req.params.referenceType, companyId, tenantId)
             .then(function(resp)
             {
-                return externalApiHandler.generateAPICalls(reqId, resp, extraData);
+                if(resp&&resp.length){
+                    extraData.tenantId = tenantId;
+                    extraData.companyId = companyId;
+                    extraData.referenceType = req.params.referenceType;
+                    return externalApiHandler.generateAPICalls(reqId, resp, extraData);
+                }
+                else {
+                    var jsonString = messageFormatter.FormatMessage(null, "Invalid Details.", false, resp);
+                    logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                    res.end(jsonString);
+                }
+
 
             })
             .then(function(resp)
