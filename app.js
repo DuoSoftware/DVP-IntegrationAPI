@@ -152,7 +152,7 @@ server.put('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
     return next();
 });
 
-server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization({resource:"integration", action:"delete"}), function(req, res, next)
+server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization({resource:"tag", action:"delete"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try
@@ -210,7 +210,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({re
             throw new Error("Invalid company or tenant");
         }
 
-        integrationOpHandler.getIntegrationAPIDetails(reqId, companyId, tenantId)
+        integrationOpHandler.getIntegrationAPIDetails(reqId,null, companyId, tenantId)
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
