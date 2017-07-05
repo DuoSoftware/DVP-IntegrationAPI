@@ -371,9 +371,19 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
             })
             .then(function(resp)
             {
-                var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
-                res.end(jsonString);
+                if(resp && resp.length > 0)
+                {
+                    var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp[0]);
+                    logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                    res.end(jsonString);
+                }
+                else
+                {
+                    var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, null);
+                    logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                    res.end(jsonString);
+                }
+
             })
             .catch(function(err)
             {
@@ -393,3 +403,4 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
 
     return next();
 });
+

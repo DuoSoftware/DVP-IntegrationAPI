@@ -126,7 +126,11 @@ var generateAPICalls = function(reqId, apiDetails, inputObject)
         var asyncFunctionArr = [];
         apiDetails.forEach(function(apiInfo)
         {
-            asyncFunctionArr.push(callApiMethod.bind(this, reqId, apiInfo.url, apiInfo.method, apiInfo.parameters, inputObject));
+            if(apiInfo.parameters && apiInfo.parameters.length > 0)
+            {
+                asyncFunctionArr.push(callApiMethod.bind(this, reqId, apiInfo.url, apiInfo.method, apiInfo.parameters, inputObject));
+            }
+
         });
 
         async.parallel(asyncFunctionArr, function(err, results)
