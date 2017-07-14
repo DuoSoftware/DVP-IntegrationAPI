@@ -8,17 +8,15 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var messageFormatter = require('dvp-common/CommonMessageGenerator/ClientMessageJsonFormatter.js');
 var integrationOpHandler = require('./IntegrationAPIOperations.js');
 var externalApiHandler = require('./ExternalApiAccessHandler.js');
+var externalProfileHandler = require('./ExternalProfileHandler.js');
 var jwt = require('restify-jwt');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var util = require('util');
 
-var server = restify.createServer({
-    name: "DVP Integration API"
-});
 
 var server = restify.createServer({
-    name: 'localhost',
+    name: 'DVP Integration API',
     version: '1.0.0'
 });
 
@@ -154,7 +152,7 @@ server.put('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
     return next();
 });
 
-server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization({resource:"integration", action:"delete"}), function(req, res, next)
+server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization({resource:"tag", action:"delete"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try
@@ -212,7 +210,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({re
             throw new Error("Invalid company or tenant");
         }
 
-        integrationOpHandler.getIntegrationAPIDetails(reqId, companyId, tenantId)
+        integrationOpHandler.getIntegrationAPIDetails(reqId,null, companyId, tenantId)
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
@@ -284,7 +282,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo/Reference/:refName'
     return next();
 });
 
-server.post('/DVP/API/:version/IntegrationAPI/CallAPIs', authorization({resource:"integration", action:"write"}), function(req, res, next)
+server.post('/DVP/API/:version/IntegrationAPI/:referenceType/CallAPIs', authorization({resource:"integration", action:"write"}), function(req, res, next)
 {
     var reqId = uuid.v1();
     try
@@ -301,10 +299,21 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPIs', authorization({resource
             throw new Error("Invalid company or tenant");
         }
 
-        integrationOpHandler.getIntegrationAPIDetails(reqId, companyId, tenantId)
+        integrationOpHandler.getIntegrationAPIDetails(reqId,req.params.referenceType, companyId, tenantId)
             .then(function(resp)
             {
-                return externalApiHandler.generateAPICalls(reqId, resp, extraData);
+                if(resp&&resp.length){
+                    extraData.tenantId = tenantId;
+                    extraData.companyId = companyId;
+                    extraData.referenceType = req.params.referenceType;
+                    return externalApiHandler.generateAPICalls(reqId, resp, extraData);
+                }
+                else {
+                    var jsonString = messageFormatter.FormatMessage(null, "Invalid Details.", false, resp);
+                    logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                    res.end(jsonString);
+                }
+
 
             })
             .then(function(resp)
@@ -388,6 +397,33 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
     {
         var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
         logger.error('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.get('/DVP/API/:version/IntegrationAPI/Profile/External/:Reference', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+
+        logger.debug('getAdditionalProfileData - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        externalProfileHandler.getAdditionalProfileData(req,res);
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('getAdditionalProfileData - [%s] - API RESPONSE : %s', reqId, jsonString);
         res.end(jsonString);
     }
 
