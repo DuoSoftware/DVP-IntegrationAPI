@@ -3,6 +3,7 @@
  */
 var Promise = require('bluebird');
 var IntegrationData = require('dvp-mongomodels/model/IntegrationData').IntegrationData;
+var ReportEmail = require('dvp-mongomodels/model/ReportEmailConfig').ReportEmailConfig;
 var mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
 
@@ -142,7 +143,43 @@ var deleteIntegrationAPIDetails = function (reqId, id, companyId, tenantId) {
     })
 };
 
+var getUserById = function(id, companyId, tenantId)
+{
+    return new Promise(function(fulfill, reject)
+    {
+        try
+        {
+            if(id)
+            {
+                User.findOne({company: companyId, tenant: tenantId, _id: id})
+                    .exec( function(err, user)
+                    {
+                        if (err)
+                        {
+                            reject(err);
+                        }
+                        else
+                        {
+                            fulfill(user);
+                        }
+                    });
+            }
+            else
+            {
+                fulfill(null);
+            }
 
+        }
+        catch(ex)
+        {
+            reject(ex);
+        }
+    });
+
+
+};
+
+module.exports.getUserById = getUserById;
 module.exports.saveIntegrationAPIDetails = saveIntegrationAPIDetails;
 module.exports.getIntegrationAPIDetails = getIntegrationAPIDetails;
 module.exports.updateIntegrationAPIDetails = updateIntegrationAPIDetails;
