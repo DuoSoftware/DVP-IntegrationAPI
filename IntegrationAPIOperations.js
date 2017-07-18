@@ -7,15 +7,14 @@ var ReportEmail = require('dvp-mongomodels/model/ReportEmailConfig').ReportEmail
 var mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
 
-var saveIntegrationAPIDetails = function(reqId, apiInfo, companyId, tenantId)
-{
-    return new Promise(function(fulfill, reject)
-    {
+var saveIntegrationAPIDetails = function (reqId, apiInfo, companyId, tenantId) {
+    return new Promise(function (fulfill, reject) {
         var integrationInfo = IntegrationData({
 
             url: apiInfo.url,
-            referenceName: apiInfo.referenceName,
+            referenceType: apiInfo.referenceType,
             name: apiInfo.name,
+            globalToken: apiInfo.globalToken,
             method: apiInfo.method,
             parameters: apiInfo.parameters,
             company: companyId,
@@ -23,14 +22,11 @@ var saveIntegrationAPIDetails = function(reqId, apiInfo, companyId, tenantId)
 
         });
 
-        integrationInfo.save(function (err, resp)
-        {
-            if (err)
-            {
+        integrationInfo.save(function (err, resp) {
+            if (err) {
                 reject(err);
             }
-            else
-            {
+            else {
                 fulfill(resp);
             }
         });
@@ -39,25 +35,21 @@ var saveIntegrationAPIDetails = function(reqId, apiInfo, companyId, tenantId)
 };
 
 
-
-var getIntegrationAPIDetails = function(reqId, companyId, tenantId)
-{
-    return new Promise(function(fulfill, reject)
-    {
-        IntegrationData.find({company: companyId, tenant: tenantId}, function(err, resp)
-        {
-            if (err)
-            {
+var getIntegrationAPIDetails = function (reqId, referenceType, companyId, tenantId) {
+    return new Promise(function (fulfill, reject) {
+        var conditions = {company: companyId, tenant: tenantId};
+        if (referenceType) {
+            conditions["referenceType"] = referenceType;
+        }
+        IntegrationData.find(conditions, function (err, resp) {
+            if (err) {
                 reject(err);
             }
-            else
-            {
-                if(!resp)
-                {
+            else {
+                if (!resp) {
                     reject(new Error('No integration data found for company'));
                 }
-                else
-                {
+                else {
                     fulfill(resp);
                 }
 
@@ -67,24 +59,17 @@ var getIntegrationAPIDetails = function(reqId, companyId, tenantId)
     })
 };
 
-var getIntegrationAPIDetailsByRef = function(reqId, companyId, tenantId, refName)
-{
-    return new Promise(function(fulfill, reject)
-    {
-        IntegrationData.find({company: companyId, tenant: tenantId, referenceName: refName}, function(err, resp)
-        {
-            if (err)
-            {
+var getIntegrationAPIDetailsByRef = function (reqId, companyId, tenantId, refName) {
+    return new Promise(function (fulfill, reject) {
+        IntegrationData.find({company: companyId, tenant: tenantId, referenceName: refName}, function (err, resp) {
+            if (err) {
                 reject(err);
             }
-            else
-            {
-                if(!resp)
-                {
+            else {
+                if (!resp) {
                     reject(new Error('No integration data found for company'));
                 }
-                else
-                {
+                else {
                     fulfill(resp);
                 }
 
@@ -94,24 +79,17 @@ var getIntegrationAPIDetailsByRef = function(reqId, companyId, tenantId, refName
     })
 };
 
-var getIntegrationAPIDetailsById = function(reqId, id, companyId, tenantId)
-{
-    return new Promise(function(fulfill, reject)
-    {
-        IntegrationData.findOne({_id: id, company: companyId, tenant: tenantId}, function(err, resp)
-        {
-            if (err)
-            {
+var getIntegrationAPIDetailsById = function (reqId, id, companyId, tenantId) {
+    return new Promise(function (fulfill, reject) {
+        IntegrationData.findOne({_id: id, company: companyId, tenant: tenantId}, function (err, resp) {
+            if (err) {
                 reject(err);
             }
-            else
-            {
-                if(!resp)
-                {
+            else {
+                if (!resp) {
                     reject(new Error('No integration data found for id'));
                 }
-                else
-                {
+                else {
                     fulfill(resp);
                 }
 
@@ -122,10 +100,8 @@ var getIntegrationAPIDetailsById = function(reqId, id, companyId, tenantId)
 };
 
 
-var updateIntegrationAPIDetails = function(reqId, id, apiInfo, companyId, tenantId)
-{
-    return new Promise(function (fulfill, reject)
-    {
+var updateIntegrationAPIDetails = function (reqId, id, apiInfo, companyId, tenantId) {
+    return new Promise(function (fulfill, reject) {
         IntegrationData.findAndUpdate({company: companyId, tenant: tenantId, _id: id},
             {
                 url: apiInfo.url,
@@ -135,20 +111,15 @@ var updateIntegrationAPIDetails = function(reqId, id, apiInfo, companyId, tenant
                 company: companyId,
                 tenant: tenantId
 
-            }, function (err, resp)
-            {
-                if (err)
-                {
+            }, function (err, resp) {
+                if (err) {
                     reject(err);
                 }
-                else
-                {
-                    if (resp)
-                    {
+                else {
+                    if (resp) {
                         reject(new Error('No integration data found for company'));
                     }
-                    else
-                    {
+                    else {
                         fulfill(resp);
                     }
 
@@ -158,18 +129,13 @@ var updateIntegrationAPIDetails = function(reqId, id, apiInfo, companyId, tenant
     })
 };
 
-var deleteIntegrationAPIDetails = function(reqId, id, companyId, tenantId)
-{
-    return new Promise(function(fulfill, reject)
-    {
-        IntegrationData.findOneAndRemove({_id: id, company: companyId, tenant: tenantId}, function(err, resp)
-        {
-            if (err)
-            {
+var deleteIntegrationAPIDetails = function (reqId, id, companyId, tenantId) {
+    return new Promise(function (fulfill, reject) {
+        IntegrationData.findOneAndRemove({_id: id, company: companyId, tenant: tenantId}, function (err, resp) {
+            if (err) {
                 reject(err);
             }
-            else
-            {
+            else {
                 fulfill(true);
             }
         });
