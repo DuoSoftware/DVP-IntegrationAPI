@@ -83,7 +83,7 @@ module.exports.getAdditionalProfileData = function (req, res) {
         headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": "bearer " + config.Token,
+            "Authorization": "bearer " + config.token,
             "companyinfo": req.user.tenant + ":" + req.user.company
         },
         body: res.data
