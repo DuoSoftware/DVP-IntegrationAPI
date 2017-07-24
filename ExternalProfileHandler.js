@@ -79,7 +79,7 @@ module.exports.getAdditionalProfileData = function (req, res) {
 
     var options = {
         method: "GET",
-        uri: config.ExternalProfile.url + req.params.Reference,
+        uri: "http://"+config.Services.userserviceurl+":"+config.Services.userserviceport+"/DVP/API/"+config.Services.userserviceversion+"/Profile/External/"+ req.params.Reference,
         headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
