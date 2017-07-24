@@ -18,7 +18,7 @@ module.exports = {
          "sentinels":{
             "hosts": "SYS_REDIS_SENTINEL_HOSTS",
             "port":"SYS_REDIS_SENTINEL_PORT",
-            "name":"SYS_REDIS_SENTINEL_NAME"
+            "name":"SYS_REDIS_SENTINEL_NAME" }
         
     },
     "Mongo":
