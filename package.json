@@ -25,6 +25,7 @@
     "mongoose": "^4.6.8",
     "mongoose-unique-validator": "^1.0.5",
     "node-uuid": "^1.4.8",
+    "q": "^1.5.0",
     "request": "^2.81.0",
     "restify": "^4.3.0",
     "restify-jwt": "^0.4.0",
