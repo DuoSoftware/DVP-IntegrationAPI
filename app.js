@@ -20,8 +20,8 @@ var server = restify.createServer({
     version: '1.0.0'
 });
 
-var hostIp = config.Host.Ip;
-var hostPort = config.Host.Port;
+var hostIp = config.Host.ip;
+var hostPort = config.Host.port;
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
 server.use(restify.CORS());
