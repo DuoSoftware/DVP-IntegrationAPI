@@ -13,5 +13,5 @@ RUN git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-IntegrationAPI.
 RUN cd /usr/local/src/integrationapi;
 WORKDIR /usr/local/src/integrationapi
 RUN npm install
-EXPOSE 4334
+EXPOSE 8882
 CMD [ "node", "/usr/local/src/integrationapi/app.js" ]
