@@ -6,7 +6,6 @@ module.exports = {
 
     "Host":
     {
-        "version": "HOST_VERSION"
         "vdomain": "LB_FRONTEND",
         "ip": "HOST_NAME",
         "port": "HOST_INTEGRATIONAPI_PORT",
@@ -40,7 +39,7 @@ module.exports = {
     
    "Services": {
         "userserviceurl": "SYS_USERSERVICE_HOST",
-        "userserviceport": 'SYS_USERSERVICE_PORT',
+        "userserviceport": "SYS_USERSERVICE_PORT",
         "userserviceversion": "SYS_USERSERVICE_VERSION"
  }
 };
