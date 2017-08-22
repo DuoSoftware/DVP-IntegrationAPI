@@ -20,8 +20,8 @@ var server = restify.createServer({
     version: '1.0.0'
 });
 
-var hostIp = config.Host.Ip;
-var hostPort = config.Host.Port;
+var hostIp = config.Host.ip;
+var hostPort = config.Host.port;
 
 restify.CORS.ALLOW_HEADERS.push('authorization');
 server.use(restify.CORS());
@@ -31,7 +31,7 @@ server.use(restify.queryParser());
 server.use(restify.bodyParser());
 server.use(jwt({secret: secret.Secret}));
 
-var mongoip=config.Mongo.ip;
+/*var mongoip=config.Mongo.ip;
 var mongoport=config.Mongo.port;
 var mongodb=config.Mongo.dbname;
 var mongouser=config.Mongo.user;
@@ -56,7 +56,7 @@ mongoose.connection.once('open', function() {
 });
 
 
-mongoose.connect(connectionstring);
+mongoose.connect(connectionstring);*/
 
 server.listen(hostPort, hostIp, function () {
     console.log('%s listening at %s', server.name, server.url);
@@ -70,7 +70,7 @@ server.post('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({r
     var reqId = uuid.v1();
     try
     {
-        logger.debug('[DVP-IntegrationAPI.AddIntegrationInfo] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.AddIntegrationInfo] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -85,7 +85,7 @@ server.post('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({r
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details added successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.AddIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.AddIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
 
             })
@@ -113,7 +113,7 @@ server.put('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
     var reqId = uuid.v1();
     try
     {
-        logger.debug('[DVP-IntegrationAPI.UpdateIntegrationInfo] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.UpdateIntegrationInfo] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -129,7 +129,7 @@ server.put('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details updated successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.UpdateIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.UpdateIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
 
             })
@@ -157,7 +157,7 @@ server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
     var reqId = uuid.v1();
     try
     {
-        logger.debug('[DVP-IntegrationAPI.DeleteIntegrationInfo] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.DeleteIntegrationInfo] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -172,7 +172,7 @@ server.del('/DVP/API/:version/IntegrationAPI/IntegrationInfo/:id', authorization
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details deleted successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.DeleteIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.DeleteIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
 
             })
@@ -200,7 +200,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({re
     var reqId = uuid.v1();
     try
     {
-        logger.debug('[DVP-IntegrationAPI.GetIntegrationInfo] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.GetIntegrationInfo] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -214,7 +214,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({re
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.GetIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.GetIntegrationInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
 
             })
@@ -242,7 +242,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo/Reference/:refName'
     var reqId = uuid.v1();
     try
     {
-        logger.debug('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -259,7 +259,7 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo/Reference/:refName'
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.GetIntegrationInfoByRef] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
 
             })
@@ -287,7 +287,7 @@ server.post('/DVP/API/:version/IntegrationAPI/:referenceType/CallAPIs', authoriz
     var reqId = uuid.v1();
     try
     {
-        logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -310,7 +310,7 @@ server.post('/DVP/API/:version/IntegrationAPI/:referenceType/CallAPIs', authoriz
                 }
                 else {
                     var jsonString = messageFormatter.FormatMessage(null, "Invalid Details.", false, resp);
-                    logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                    logger.info('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
                     res.end(jsonString);
                 }
 
@@ -319,7 +319,7 @@ server.post('/DVP/API/:version/IntegrationAPI/:referenceType/CallAPIs', authoriz
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
             })
             .catch(function(err)
@@ -346,7 +346,7 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
     var reqId = uuid.v1();
     try
     {
-        /*logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
+        /*logger.info('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
         var json = {
             Name: "Dinusha Kannangara",
             Gender: "Male",
@@ -357,7 +357,7 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
         var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, json);
         res.end(jsonString);*/
 
-        logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
+        logger.info('[DVP-IntegrationAPI.CallAPIs] - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;
@@ -381,7 +381,7 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Integration API details retrieved successfully", true, resp);
-                logger.debug('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                logger.info('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
                 res.end(jsonString);
             })
             .catch(function(err)
@@ -409,7 +409,7 @@ server.get('/DVP/API/:version/IntegrationAPI/Profile/External/:Reference', autho
     try
     {
 
-        logger.debug('getAdditionalProfileData - [%s] - HTTP Request Received', reqId);
+        logger.info('getAdditionalProfileData - [%s] - HTTP Request Received', reqId);
 
         var companyId = req.user.company;
         var tenantId = req.user.tenant;

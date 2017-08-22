@@ -7,7 +7,7 @@ var util = require('util');
 var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var httpReq = require('request');
 var async = require('async');
-
+var externalProfileHandler = require('./ExternalProfileHandler.js');
 
 
 var traverseObject = function (obj, param, isInner) {
@@ -66,7 +66,7 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
                 }
                 else {
                     var stringToGoIntoTheRegex = param.name;
-                    var regex = new RegExp(":" + stringToGoIntoTheRegex , "gi");
+                    var regex = new RegExp(":" + stringToGoIntoTheRegex, "gi");
                     url = url.replace(regex, paramValue);
                 }
 
@@ -91,8 +91,19 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
         httpReq(options, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var apiResp = JSON.parse(body);
+                if (apiInfo.referenceType === "PROFILE_SEARCH_DATA" &&apiResp && apiResp.thirdpartyreference) {
+                    //externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId,inputObject.companyId,apiResp);
 
-                callback(null, apiResp);
+                    externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId,inputObject.companyId,apiResp).then(function (profile) {
+                        callback(null, profile);
+                    }, function (err) {
+                        callback(null, null);
+                    });
+
+                }
+                else {
+                    callback(null, apiResp);
+                }
 
             }
             else {
