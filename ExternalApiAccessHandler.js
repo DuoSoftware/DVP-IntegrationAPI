@@ -8,7 +8,7 @@ var logger = require('dvp-common/LogHandler/CommonLogHandler.js').logger;
 var httpReq = require('request');
 var async = require('async');
 var externalProfileHandler = require('./ExternalProfileHandler.js');
-
+var url_util = require('url');
 
 var traverseObject = function (obj, param, isInner) {
     var val = null;
@@ -55,9 +55,11 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
                     payload[param.name] = paramValue;
                 }
                 else if (param.parameterLocation === 'QUERY') {
-                    if (isFirstQueryParam) {
-                        isFirstQueryParam = !isFirstQueryParam;
 
+                    var url_parts = url_util.parse(url, true);
+                    isFirstQueryParam = url_parts.query===undefined;
+
+                    if (isFirstQueryParam) {
                         url = url + '?' + param.name + '=' + paramValue;
                     }
                     else {
