@@ -57,7 +57,7 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
                 else if (param.parameterLocation === 'QUERY') {
 
                     var url_parts = url_util.parse(url, true);
-                    isFirstQueryParam = url_parts.query===undefined;
+                    isFirstQueryParam = url_parts.query === undefined;
 
                     if (isFirstQueryParam) {
                         url = url + '?' + param.name + '=' + paramValue;
@@ -92,21 +92,49 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
 
         httpReq(options, function (error, response, body) {
             if (!error && response.statusCode == 200) {
+
                 var apiResp = JSON.parse(body);
-                if (apiInfo.referenceType === "PROFILE_SEARCH_DATA" &&apiResp && apiResp.thirdpartyreference) {
-                    //externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId,inputObject.companyId,apiResp);
 
-                    externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId,inputObject.companyId,apiResp).then(function (profile) {
-                        callback(null, profile);
-                    }, function (err) {
-                        callback(null, null);
-                    });
+                if (apiInfo.referenceType === "PROFILE_SEARCH_DATA") {
+                    if (Array.isArray(apiResp)) {
+                        var asyncFunctionArraaaa = [];
 
+                        apiResp.forEach(function (apiInfo) {
+                            //asyncFunctionArr.push(callApiMethod.bind(this, reqId, apiInfo, inputObject));
+                            asyncFunctionArraaaa.push(externalProfileHandler.CreateProfileIsNotExist.bind(this, inputObject.tenantId, inputObject.companyId, apiInfo));
+                        });
+
+                        async.parallel(asyncFunctionArraaaa, function (err, results) {
+                            if (err) {
+                                callback(err, null);
+                            }
+                            else {
+                                callback(null, results);
+                            }
+                        })
+
+                    } else {
+                        if (apiResp) {
+                            externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId, inputObject.companyId, apiResp, function (error, profile) {
+                                if (error) {
+                                    callback(error, null);
+                                }else{
+                                    callback(null, profile);
+                                }
+                            }, function (err) {
+
+                                callback(err, null);
+                            });
+
+                        }
+                        else {
+                            callback(null, null);
+                        }
+                    }
                 }
                 else {
                     callback(null, apiResp);
                 }
-
             }
             else {
                 callback(null, null);
@@ -144,7 +172,20 @@ var generateAPICalls = function (reqId, apiDetails, inputObject) {
                 reject(err);
             }
             else {
-                fulfill(results);
+
+                var reply = [];
+                results.map(function (item) {
+                    if (Array.isArray(item)) {
+                        item.map(function (data) {
+                            reply.push(data);
+                        })
+                    }
+                    else {
+                        reply.push(item);
+                    }
+
+                });
+                fulfill(reply);
             }
         })
 
