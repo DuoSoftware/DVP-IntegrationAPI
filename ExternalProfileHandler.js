@@ -39,7 +39,7 @@ module.exports.getAdditionalProfileData = function (req, res) {
 
 };
 
-module.exports.CreateProfileIsNotExist = function (tenant, company, user,callback) {
+module.exports.CreateProfileIsNotExist = function (tenant, company, user,create_new_profile,callback) {
 
     if (user && user.thirdpartyreference){
         ExternalUser.findOne({
@@ -54,54 +54,61 @@ module.exports.CreateProfileIsNotExist = function (tenant, company, user,callbac
                 if (profile){
                     callback(null,profile);
                 } else {
-                    var extUser = ExternalUser({
-                        thirdpartyreference: user.thirdpartyreference,
-                        title: user.title,
-                        name: user.name,
-                        avatar: user.avatar,
-                        birthday: user.birthday,
-                        gender: user.gender,
-                        firstname: user.firstname,
-                        lastname: user.lastname,
-                        locale: user.locale,
-                        ssn: user.ssn,
-                        address: {
-                            zipcode: "",
-                            number: "",
-                            street: "",
-                            city: "",
-                            province: "",
-                            country: ""
-                        },
-                        phone: user.phone,
-                        email: user.email,
-                        company: company,
-                        tenant: tenant,
-                        created_at: Date.now(),
-                        updated_at: Date.now(),
-                        tags: user.tags
-                    });
-                    if (user.address) {
-                        extUser.address = {
-                            zipcode: user.address.zipcode,
-                            number: user.address.number,
-                            street: user.address.street,
-                            city: user.address.city,
-                            province: user.address.province,
-                            country: user.address.country
+                    if(!create_new_profile)
+                    {
+                        callback(null,null);
+                    }
+                    else{
+                        var extUser = ExternalUser({
+                            thirdpartyreference: user.thirdpartyreference,
+                            title: user.title,
+                            name: user.name,
+                            avatar: user.avatar,
+                            birthday: user.birthday,
+                            gender: user.gender,
+                            firstname: user.firstname,
+                            lastname: user.lastname,
+                            locale: user.locale,
+                            ssn: user.ssn,
+                            address: {
+                                zipcode: "",
+                                number: "",
+                                street: "",
+                                city: "",
+                                province: "",
+                                country: ""
+                            },
+                            phone: user.phone,
+                            email: user.email,
+                            company: company,
+                            tenant: tenant,
+                            created_at: Date.now(),
+                            updated_at: Date.now(),
+                            tags: user.tags
+                        });
+                        if (user.address) {
+                            extUser.address = {
+                                zipcode: user.address.zipcode,
+                                number: user.address.number,
+                                street: user.address.street,
+                                city: user.address.city,
+                                province: user.address.province,
+                                country: user.address.country
 
+                            }
                         }
+
+                        extUser.save(function (err, newuser) {
+                            if (err) {
+                                logger.error("CreateProfileIsNotExist - User save failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
+                                callback(new Error("insufficient data to load"),null);
+                            } else {
+                                logger.info("CreateProfileIsNotExist -User saved successfully - [%s]", user.thirdpartyreference);
+                                callback(null,newuser);
+                            }
+                        });
                     }
 
-                    extUser.save(function (err, newuser) {
-                        if (err) {
-                            logger.error("CreateProfileIsNotExist - User save failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
-                            callback(new Error("insufficient data to load"),null);
-                        } else {
-                            logger.info("CreateProfileIsNotExist -User saved successfully - [%s]", user.thirdpartyreference);
-                            callback(null,newuser);
-                        }
-                    });
 
                 }
             }

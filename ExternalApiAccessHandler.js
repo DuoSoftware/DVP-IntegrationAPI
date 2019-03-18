@@ -101,7 +101,7 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
 
                         apiResp.forEach(function (apiInfo) {
                             //asyncFunctionArr.push(callApiMethod.bind(this, reqId, apiInfo, inputObject));
-                            asyncFunctionArraaaa.push(externalProfileHandler.CreateProfileIsNotExist.bind(this, inputObject.tenantId, inputObject.companyId, apiInfo));
+                            asyncFunctionArraaaa.push(externalProfileHandler.CreateProfileIsNotExist.bind(this, inputObject.tenantId, inputObject.companyId, apiInfo,false));
                         });
 
                         async.parallel(asyncFunctionArraaaa, function (err, results) {
@@ -115,7 +115,7 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
 
                     } else {
                         if (apiResp) {
-                            externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId, inputObject.companyId, apiResp, function (error, profile) {
+                            externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId, inputObject.companyId, apiResp,profile.hasOwnProperty("reference"), function (error, profile) {
                                 if (error) {
                                     callback(error, null);
                                 }else{
