@@ -237,6 +237,223 @@ server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo', authorization({re
     return next();
 });
 
+server.get('/DVP/API/:version/IntegrationAPI/AppInfo', authorization({resource:"integration", action:"read"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.GetAppInfo] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.getAppDetails(companyId, tenantId)
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "App details retrieved successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.GetAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error getting data", false, null);
+                logger.error('[DVP-IntegrationAPI.GetAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.GetAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.del('/DVP/API/:version/IntegrationAPI/AppInfo/:id', authorization({resource:"integration", action:"delete"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.DeleteAppInfo] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var id = req.params.id;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.deleteAppDetails(reqId, id, companyId, tenantId)
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "App deleted successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.DeleteAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error saving", false, null);
+                logger.error('[DVP-IntegrationAPI.DeleteAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.DeleteAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.get('/DVP/API/:version/IntegrationAPI/AppInfo/:id', authorization({resource:"integration", action:"read"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.GetAppInfoById] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+
+
+        var appId = req.params.id;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.getAppDetailsById(reqId, companyId, tenantId, appId)
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "App details retrieved successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.GetAppInfoById] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error getting data", false, null);
+                logger.error('[DVP-IntegrationAPI.GetAppInfoById] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.GetAppInfoById] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.put('/DVP/API/:version/IntegrationAPI/AppInfo/:id', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.UpdateAppInfo] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var appInfo = req.body;
+        var appId = req.params.id;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.updateAppDetails(appId, appInfo, companyId, tenantId)
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "App details updated successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.UpdateAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error updating", false, null);
+                logger.error('[DVP-IntegrationAPI.UpdateAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.UpdateAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.post('/DVP/API/:version/IntegrationAPI/AppInfo', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.AddAppInfo] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var appInfo = req.body;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationOpHandler.saveAppDetails(reqId, appInfo, companyId, tenantId)
+            .then(function(resp)
+            {
+                var jsonString = messageFormatter.FormatMessage(null, "App added successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.AddAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error saving", false, null);
+                logger.error('[DVP-IntegrationAPI.AddAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.AddAppInfo] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
 server.get('/DVP/API/:version/IntegrationAPI/IntegrationInfo/Reference/:refName', authorization({resource:"integration", action:"read"}), function(req, res, next)
 {
     var reqId = uuid.v1();
