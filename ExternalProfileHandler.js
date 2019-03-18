@@ -15,7 +15,7 @@ module.exports.getAdditionalProfileData = function (req, res) {
 
     var options = {
         method: "GET",
-        uri: "http://"+config.Services.userserviceurl+":"+config.Services.userserviceport+"/DVP/API/"+config.Services.userserviceversion+"/Profile/External/"+ req.params.Reference,
+        uri: "http://" + config.Services.userserviceurl + ":" + config.Services.userserviceport + "/DVP/API/" + config.Services.userserviceversion + "/Profile/External/" + req.params.Reference,
         headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -39,9 +39,76 @@ module.exports.getAdditionalProfileData = function (req, res) {
 
 };
 
-module.exports.CreateProfileIsNotExist = function (tenant, company, user,create_new_profile,callback) {
+module.exports.CreateProfileIsNotExist = function (tenant, company, user, create_new_profile, callback) {
 
-    if (user && user.thirdpartyreference){
+    if (user && user.thirdpartyreference) {
+        if (create_new_profile) {
+            ExternalUser.update({company: company, tenant: tenant, thirdpartyreference: user.thirdpartyreference}, {
+                $set: {
+                    thirdpartyreference: user.thirdpartyreference,
+                    title: user.title,
+                    name: user.name,
+                    avatar: user.avatar,
+                    birthday: user.birthday,
+                    gender: user.gender,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    locale: user.locale,
+                    ssn: user.ssn,
+                    address: user.address ? {
+                        zipcode: user.address.zipcode,
+                        number: user.address.number,
+                        street: user.address.street,
+                        city: user.address.city,
+                        province: user.address.province,
+                        country: user.address.country
+
+                    } : {
+                        zipcode: "",
+                        number: "",
+                        street: "",
+                        city: "",
+                        province: "",
+                        country: ""
+                    },
+                    phone: user.phone,
+                    email: user.email,
+                    company: company,
+                    tenant: tenant,
+                    created_at: Date.now(),
+                    updated_at: Date.now(),
+                    tags: user.tags
+                }
+            }, {upsert: true}, function (err, newuser) {
+                if (err) {
+                    logger.error("CreateProfileIsNotExist - User save failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
+                    callback(new Error("insufficient data to load"), null);
+                } else {
+                    logger.info("CreateProfileIsNotExist -User saved successfully - [%s]", user.thirdpartyreference);
+                    callback(null, newuser);
+                }
+
+            });
+        }
+        else {
+            ExternalUser.findOne({
+                thirdpartyreference: user.thirdpartyreference,
+                company: company,
+                tenant: tenant
+            }, function (err, profile) {
+                if (err) {
+                    logger.error("CreateProfileIsNotExist - Get External User Failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
+                }
+                callback(err, profile);
+            });
+        }
+    }
+    else {
+        callback(new Error("Third Party Reference Not Found"), null);
+    }
+
+    /*if (user && user.thirdpartyreference){
+
         ExternalUser.findOne({
             thirdpartyreference: user.thirdpartyreference,
             company: company,
@@ -59,6 +126,8 @@ module.exports.CreateProfileIsNotExist = function (tenant, company, user,create_
                         callback(null,null);
                     }
                     else{
+
+
                         var extUser = ExternalUser({
                             thirdpartyreference: user.thirdpartyreference,
                             title: user.title,
@@ -116,8 +185,7 @@ module.exports.CreateProfileIsNotExist = function (tenant, company, user,create_
     }
     else{
         callback(new Error("Third Party Reference Not Found"),null);
-    }
-
+    }*/
 
 
     /*var deferred = Q.defer();
@@ -193,79 +261,79 @@ module.exports.CreateProfileIsNotExist = function (tenant, company, user,create_
 
     return deferred.promise;*/
 
-/*
+    /*
 
 
-    return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve, reject) {
 
-        if (user && user.thirdpartyreference){
-            ExternalUser.findOne({
-                thirdpartyreference: user.thirdpartyreference,
-                company: company,
-                tenant: tenant
-            }, function (err, profile) {
-                if (err) {
-                    logger.error("CreateProfileIsNotExist - Get External User Failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
-                    reject(err);
-                } else {
-                    if (profile){
-                        resolve(profile);
+            if (user && user.thirdpartyreference){
+                ExternalUser.findOne({
+                    thirdpartyreference: user.thirdpartyreference,
+                    company: company,
+                    tenant: tenant
+                }, function (err, profile) {
+                    if (err) {
+                        logger.error("CreateProfileIsNotExist - Get External User Failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
+                        reject(err);
                     } else {
-                        var extUser = ExternalUser({
-                            thirdpartyreference: user.thirdpartyreference,
-                            title: user.title,
-                            name: user.name,
-                            avatar: user.avatar,
-                            birthday: user.birthday,
-                            gender: user.gender,
-                            firstname: user.firstname,
-                            lastname: user.lastname,
-                            locale: user.locale,
-                            ssn: user.ssn,
-                            address: {
-                                zipcode: "",
-                                number: "",
-                                street: "",
-                                city: "",
-                                province: "",
-                                country: ""
-                            },
-                            phone: user.phone,
-                            email: user.email,
-                            company: company,
-                            tenant: tenant,
-                            created_at: Date.now(),
-                            updated_at: Date.now(),
-                            tags: user.tags
-                        });
-                        if (user.address) {
-                            extUser.address = {
-                                zipcode: user.address.zipcode,
-                                number: user.address.number,
-                                street: user.address.street,
-                                city: user.address.city,
-                                province: user.address.province,
-                                country: user.address.country
+                        if (profile){
+                            resolve(profile);
+                        } else {
+                            var extUser = ExternalUser({
+                                thirdpartyreference: user.thirdpartyreference,
+                                title: user.title,
+                                name: user.name,
+                                avatar: user.avatar,
+                                birthday: user.birthday,
+                                gender: user.gender,
+                                firstname: user.firstname,
+                                lastname: user.lastname,
+                                locale: user.locale,
+                                ssn: user.ssn,
+                                address: {
+                                    zipcode: "",
+                                    number: "",
+                                    street: "",
+                                    city: "",
+                                    province: "",
+                                    country: ""
+                                },
+                                phone: user.phone,
+                                email: user.email,
+                                company: company,
+                                tenant: tenant,
+                                created_at: Date.now(),
+                                updated_at: Date.now(),
+                                tags: user.tags
+                            });
+                            if (user.address) {
+                                extUser.address = {
+                                    zipcode: user.address.zipcode,
+                                    number: user.address.number,
+                                    street: user.address.street,
+                                    city: user.address.city,
+                                    province: user.address.province,
+                                    country: user.address.country
 
+                                }
                             }
+
+                            extUser.save(function (err, newuser) {
+                                if (err) {
+                                    logger.error("CreateProfileIsNotExist - User save failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
+                                    reject(err);
+                                } else {
+                                    logger.info("CreateProfileIsNotExist -User saved successfully - [%s]", user.thirdpartyreference);
+                                    resolve(newuser);
+                                }
+                            });
+
                         }
-
-                        extUser.save(function (err, newuser) {
-                            if (err) {
-                                logger.error("CreateProfileIsNotExist - User save failed.[%s] - [%s] - [%s] - [%s]", tenant, company, user.thirdpartyreference, err);
-                                reject(err);
-                            } else {
-                                logger.info("CreateProfileIsNotExist -User saved successfully - [%s]", user.thirdpartyreference);
-                                resolve(newuser);
-                            }
-                        });
-
                     }
-                }
-            });
-        }
-        else{
-            reject(new Error("insufficient data to load"));
-        }
-    });*/
+                });
+            }
+            else{
+                reject(new Error("insufficient data to load"));
+            }
+        });*/
 };
