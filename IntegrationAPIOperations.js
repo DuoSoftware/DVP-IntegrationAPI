@@ -60,86 +60,6 @@ var getIntegrationAPIDetails = function (reqId, referenceType, companyId, tenant
     })
 };
 
-var getAppDetails = function (companyId, tenantId) {
-    return new Promise(function (fulfill, reject) {
-        var conditions = {company: companyId, tenant: tenantId};
-        
-        AppData.find(conditions, function (err, resp) {
-            if (err) {
-                reject(err);
-            }
-            else {
-                if (!resp) {
-                    reject(new Error('No apps found for company'));
-                }
-                else {
-                    fulfill(resp);
-                }
-
-            }
-        });
-
-    })
-};
-
-var getAppDetailsById = function (reqId, companyId, tenantId, id) {
-
-    return new Promise(function (fulfill, reject) {
-        AppData.findOne({_id: id, company: companyId, tenant: tenantId}, function (err, resp) {
-            if (err) {
-                reject(err);
-            }
-            else {
-                if (!resp) {
-                    reject(new Error('No apps found for id'));
-                }
-                else {
-                    fulfill(resp);
-                }
-            }
-        });
-
-    })
-};
-
-var saveAppDetails = function (reqId, appInfo, companyId, tenantId) {
-    return new Promise(function (fulfill, reject) {
-        var appObj = AppData(appInfo);
-
-        appObj.company = companyId;
-        appObj.tenant = tenantId;
-
-        appObj.save(function (err, resp) {
-            if (err) {
-                reject(err);
-            }
-            else {
-                fulfill(resp);
-            }
-        });
-    })
-};
-
-var updateAppDetails = function (appId, appData, companyId, tenantId) {
-    
-    return new Promise(function (fulfill, reject) {
-        AppData.findOneAndUpdate({company: companyId, tenant: tenantId, _id: appId}, appData, function (err, resp) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    if (!resp) {
-                        reject(new Error('No apps found for id'));
-                    }
-                    else {
-                        fulfill(resp);
-                    }
-                }
-            });
-
-    })
-};
-
 var getIntegrationAPIDetailsByRef = function (reqId, companyId, tenantId, refName) {
     return new Promise(function (fulfill, reject) {
         IntegrationData.find({company: companyId, tenant: tenantId, referenceName: refName}, function (err, resp) {
@@ -224,20 +144,6 @@ var deleteIntegrationAPIDetails = function (reqId, id, companyId, tenantId) {
     })
 };
 
-var deleteAppDetails = function (reqId, id, companyId, tenantId) {
-    return new Promise(function (fulfill, reject) {
-        AppData.findOneAndRemove({_id: id, company: companyId, tenant: tenantId}, function (err, resp) {
-            if (err) {
-                reject(err);
-            }
-            else {
-                fulfill(true);
-            }
-        });
-
-    })
-};
-
 var getUserById = function(id, companyId, tenantId)
 {
     return new Promise(function(fulfill, reject)
@@ -277,12 +183,7 @@ var getUserById = function(id, companyId, tenantId)
 module.exports.getUserById = getUserById;
 module.exports.saveIntegrationAPIDetails = saveIntegrationAPIDetails;
 module.exports.getIntegrationAPIDetails = getIntegrationAPIDetails;
-module.exports.getAppDetails = getAppDetails;
-module.exports.getAppDetailsById = getAppDetailsById;
-module.exports.saveAppDetails = saveAppDetails;
-module.exports.updateAppDetails = updateAppDetails;
 module.exports.updateIntegrationAPIDetails = updateIntegrationAPIDetails;
 module.exports.deleteIntegrationAPIDetails = deleteIntegrationAPIDetails;
-module.exports.deleteAppDetails = deleteAppDetails;
 module.exports.getIntegrationAPIDetailsById = getIntegrationAPIDetailsById;
 module.exports.getIntegrationAPIDetailsByRef = getIntegrationAPIDetailsByRef;
