@@ -12,7 +12,7 @@ module.exports = {
         }
     },
     "Host": {
-        "ip": "localhost",
+        "ip": "0.0.0.0",
         "port": "2622",
         "version": "1.0.0.0",
         "token": ""
