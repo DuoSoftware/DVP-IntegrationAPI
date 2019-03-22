@@ -883,6 +883,47 @@ server.post('/DVP/API/:version/IntegrationAPI/CallAPI/:id', authorization({resou
     return next();
 });
 
+server.post('/DVP/API/:version/IntegrationAPI/CallIntegration/:id', authorization({resource:"integration", action:"write"}), async function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.CallIntegration] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var id = req.params.id;
+
+        var extraData = req.body;
+
+        if (!companyId || !tenantId) {
+            throw new Error("Invalid company or tenant");
+        }
+
+        integrationData = await appIntegrationHandler.getIntegrationById(reqId, id, companyId, tenantId);
+
+        externalApiHandler.callAppIntegration(integrationData, extraData)
+        .then(function(resp) {
+                var jsonString = messageFormatter.FormatMessage(null, "API data retrieved successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.CallIntegration] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+        .catch(function(err) {
+            var jsonString = messageFormatter.FormatMessage(err, "Error calling third party api!", false, null);
+            logger.error('[DVP-IntegrationAPI.CallIntegration] - [%s] - API RESPONSE : %s', reqId, jsonString);
+            res.end(jsonString);
+        })
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.CallAPIs] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
 server.get('/DVP/API/:version/IntegrationAPI/Profile/External/:Reference', authorization({resource:"integration", action:"write"}), function(req, res, next)
 {
     var reqId = uuid.v1();

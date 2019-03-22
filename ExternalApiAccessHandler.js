@@ -9,6 +9,7 @@ var httpReq = require('request');
 var async = require('async');
 var externalProfileHandler = require('./ExternalProfileHandler.js');
 var url_util = require('url');
+var ESB = require('light-esb-node');
 
 var traverseObject = function (obj, param, isInner) {
     var val = null;
@@ -194,5 +195,96 @@ var generateAPICalls = function (reqId, apiDetails, inputObject) {
     });
 };
 
+var callAppIntegration = function (integrationData, reqObj) {
+    return new Promise(function (fulfill, reject) {
+
+        let esbCallback = function(error,esbMessage){
+            try{
+                if(error){
+                    reject(error);
+                    return;
+                }else{
+                    let responseObject = {
+                        Success: null,
+                        Result: null,
+                        Message: null
+                    };
+                    
+                    // check if the response status code is in list of accepted codes..
+                    if(integrationData.response_map){
+                        if(integrationData.response_map.accepted_codes.includes(esbMessage.status.code.toString())){
+                            responseObject.Success = true;
+                            responseObject.Message = integrationData.response_map.success_msg;
+                        }else{
+                            responseObject.Success = false;
+                            responseObject.Message = integrationData.response_map.error_msg;
+                        }
+                    };
+                    
+                    if(Buffer.isBuffer(esbMessage.payload)){
+                        esbMessage.payload = esbMessage.payload.toString('utf8');
+                    }
+
+                    responseObject.Result = esbMessage.payload;
+
+                    responseObject.Message = responseObject.Message.replace(/{(.*)}/, function(match, placeholder){
+                        return placeholder.trim().split('.').reduce((o,i)=>o[i], responseObject.Result);
+                    });
+                    
+                    fulfill(responseObject);
+                    return;
+                } 
+            }catch(e){
+                reject(e);
+                return;
+            }
+        };
+
+        let paramObj = {
+                "PARAMS": {},
+                "QUERY": {},
+                "BODY": {}
+            };
+
+        if(integrationData.parameters) {
+            var paramError = false;
+        
+            for(param of integrationData.parameters){
+                let paramVal;
+                    
+                // if the parameter referenceObject is Custom, then we don't refer to any object, just use the property as value.
+                if(param.referenceObject == "Custom") {
+                    paramVal = param.referenceProperty;
+                }else{
+                    paramVal = reqObj[param.referenceObject][param.referenceProperty];
+                }
+                
+                if(!paramVal){
+                    // paramter cannot be null , undefined, throw error!                    
+                    paramError = true;
+                    break;
+                }else{
+                    paramObj[param.parameterLocation][param.name] = paramVal;
+                }
+            };
+        };
+
+        if(paramError){
+            esbCallback(new Error('Missing parameter value for ' + param.referenceObject + '.' + param.referenceProperty));
+        }else{
+            let ESBMessage = ESB.createMessage(paramObj.BODY);
+            
+            let loggerComponent = ESB.createLoggerComponent(esbCallback);
+            let requestComponent = ESB.createCallComponent(esbCallback, integrationData.url, integrationData.method, paramObj.PARAMS, paramObj.QUERY);
+            let resultComponent = ESB.createResultComponent(esbCallback);  
+            
+            requestComponent.connect(loggerComponent);
+            requestComponent.connect(resultComponent);
+            requestComponent.send(ESBMessage);
+        }
+    });
+
+};
 
 module.exports.generateAPICalls = generateAPICalls;
+module.exports.callAppIntegration = callAppIntegration;

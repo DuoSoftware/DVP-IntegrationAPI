@@ -43,7 +43,7 @@ var getAppListForAgent = function (companyId, tenantId) {
         .populate({
             path: 'actions.dynamic_form_id',
             model: 'FormMaster',
-            select: ['name', 'fields']
+            select: 'name fields'
         }).exec(function (err, resp) {
             if (err) {
                 reject(err);
@@ -230,6 +230,28 @@ var deleteAppAction = function (appId, actionId, companyId, tenantId) {
     });
 };
 
+var getIntegrationById = function (reqId, id, companyId, tenantId) {
+
+    // var conditions = {_id: id, company: companyId, tenant: tenantId};
+    var conditions = { _id: id };
+    return new Promise(function (fulfill, reject) {
+        Integration.findOne(conditions, function (err, resp) {
+            if (err) {
+                reject(err);
+            }
+            else {
+                if (!resp) {
+                    reject(new Error('No integration data found!'));
+                }
+                else {
+                    fulfill(resp);
+                }
+            }
+        });
+
+    })
+};
+
 module.exports.getAppDetails = getAppDetails;
 module.exports.getAppListForAgent = getAppListForAgent;
 module.exports.getAppDetailsById = getAppDetailsById;
@@ -239,5 +261,6 @@ module.exports.createAction = createAction;
 module.exports.updateAction = updateAction;
 module.exports.deleteAppAction = deleteAppAction;
 module.exports.updateIntegration = updateIntegration;
+module.exports.getIntegrationById = getIntegrationById;
 module.exports.updateAppDetails = updateAppDetails;
 module.exports.deleteAppDetails = deleteAppDetails;
