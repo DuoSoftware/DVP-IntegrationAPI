@@ -115,7 +115,8 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
 
                     } else {
                         if (apiResp) {
-                            externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId, inputObject.companyId, apiResp,profile.hasOwnProperty("reference"), function (error, profile) {
+                            /*externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId, inputObject.companyId, apiResp,profile.hasOwnProperty("reference"), function (error, profile) {*/
+                            externalProfileHandler.CreateProfileIsNotExist(inputObject.tenantId, inputObject.companyId, apiResp,true, function (error, profile) {
                                 if (error) {
                                     callback(error, null);
                                 }else{
