@@ -22,6 +22,7 @@
     "config": "^1.26.1",
     "dvp-common": "^1.5.2",
     "dvp-mongomodels": "^5.2.22",
+    "light-esb-node": "^1.2.5",
     "mongoose-unique-validator": "^1.0.5",
     "node-uuid": "^1.4.8",
     "q": "^1.5.0",
