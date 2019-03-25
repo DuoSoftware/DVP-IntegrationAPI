@@ -219,6 +219,10 @@ var callAppIntegration = function (integrationData, reqObj) {
                             responseObject.Success = false;
                             responseObject.Message = integrationData.response_map.error_msg;
                         }
+
+                        responseObject.Message = responseObject.Message.replace(/{(.*)}/, function(match, placeholder){
+                            return placeholder.trim().split('.').reduce((o,i)=>o[i], responseObject.Result);
+                        });
                     };
                     
                     if(Buffer.isBuffer(esbMessage.payload)){
@@ -226,10 +230,6 @@ var callAppIntegration = function (integrationData, reqObj) {
                     }
 
                     responseObject.Result = esbMessage.payload;
-
-                    responseObject.Message = responseObject.Message.replace(/{(.*)}/, function(match, placeholder){
-                        return placeholder.trim().split('.').reduce((o,i)=>o[i], responseObject.Result);
-                    });
                     
                     fulfill(responseObject);
                     return;

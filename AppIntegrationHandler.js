@@ -106,6 +106,9 @@ var saveAppDetails = function (reqId, appInfo, companyId, tenantId) {
 
 var addDefaultIntegration = async function (appId, integrationData, companyId, tenantId) {
 
+    integrationData.company = companyId;
+    integrationData.tenant = tenantId;
+
     var IntegrationObj = Integration(integrationData);
 
     return await IntegrationObj.save(function (err, resp) {
@@ -114,7 +117,7 @@ var addDefaultIntegration = async function (appId, integrationData, companyId, t
             } else {
                 return new Promise(function (fulfill, reject) {
                     AppData.findOneAndUpdate({
-                        _id: appId
+                        _id: appId, company: companyId, tenant: tenantId
                     }, { "default_integration": resp._id }, function (error, resp_int) {
                         if (error) {
                             reject(error);
@@ -127,14 +130,17 @@ var addDefaultIntegration = async function (appId, integrationData, companyId, t
     });
 };
 
-var createAction = async function(appId, actionData){
+var createAction = async function(appId, actionData, companyId, tenantId){
     try {
+        actionData.integration.company = companyId;
+        actionData.integration.tenant = tenantId;
+
         let IntegrationObj = await Integration(actionData.integration).save();
 
         actionData.integration = IntegrationObj._id;
 
         return AppData.findOneAndUpdate(
-                            {  _id: appId },
+                            {_id: appId, company: companyId, tenant: tenantId},
                             { $push: { actions: actionData  } },
                             { new: true }
             );
@@ -143,14 +149,14 @@ var createAction = async function(appId, actionData){
     }
 };
 
-var updateAction = async function (appId, actionId, actionData) {
+var updateAction = async function (appId, actionId, actionData, companyId, tenantId) {
     try{
         integrationData = actionData.integration;
-        await updateIntegration(integrationData._id, integrationData);
+        await updateIntegration(integrationData._id, integrationData, companyId, tenantId);
 
         actionData.integration = integrationData._id;
 
-        return AppData.findOneAndUpdate({ "_id": appId, 'actions._id': actionId },
+        return AppData.findOneAndUpdate({ "_id": appId, 'actions._id': actionId, company: companyId, tenant: tenantId },
                 {
                     "$set": {
                         "actions.$": actionData
@@ -165,13 +171,13 @@ var updateAction = async function (appId, actionId, actionData) {
 
 var updateIntegration = function (integrationId, integrationData, companyId, tenantId) {
     return new Promise(function (fulfill, reject) {
-        Integration.findOneAndUpdate({_id: integrationId}, integrationData, function (err, resp) {
+        Integration.findOneAndUpdate({_id: integrationId, company: companyId, tenant: tenantId }, integrationData, function (err, resp) {
                 if (err) {
                     reject(err);
                 }
                 else {
                     if (!resp) {
-                        reject(new Error('No integrations found for id'));
+                        reject(new Error('No integrations found!'));
                     }
                     else {
                         fulfill(resp);
@@ -232,8 +238,8 @@ var deleteAppAction = function (appId, actionId, companyId, tenantId) {
 
 var getIntegrationById = function (reqId, id, companyId, tenantId) {
 
-    // var conditions = {_id: id, company: companyId, tenant: tenantId};
-    var conditions = { _id: id };
+    var conditions = {_id: id, company: companyId, tenant: tenantId};
+    // var conditions = { _id: id };
     return new Promise(function (fulfill, reject) {
         Integration.findOne(conditions, function (err, resp) {
             if (err) {

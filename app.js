@@ -602,7 +602,7 @@ server.put('/DVP/API/:version/IntegrationAPI/AppInfo/:id/action', authorization(
             throw new Error("Invalid company or tenant");
         }
 
-        appIntegrationHandler.createAction(appId, actionData)
+        appIntegrationHandler.createAction(appId, actionData, companyId, tenantId)
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "App added successfully", true, resp);
@@ -647,7 +647,7 @@ server.put('/DVP/API/:version/IntegrationAPI/AppInfo/:id/action/:actionId', auth
             throw new Error("Invalid company or tenant");
         }
 
-        appIntegrationHandler.updateAction(appId, actionId, actionData)
+        appIntegrationHandler.updateAction(appId, actionId, actionData, companyId, tenantId)
             .then(function(resp)
             {
                 var jsonString = messageFormatter.FormatMessage(null, "Action updated successfully", true, resp);
