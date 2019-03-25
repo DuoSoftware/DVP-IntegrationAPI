@@ -206,9 +206,15 @@ var callAppIntegration = function (integrationData, reqObj) {
                 }else{
                     let responseObject = {
                         Success: null,
-                        Result: null,
+                        ApiResponse: null,
                         Message: null
                     };
+
+                    if(Buffer.isBuffer(esbMessage.payload)){
+                        esbMessage.payload = esbMessage.payload.toString('utf8');
+                    }
+
+                    responseObject.ApiResponse = esbMessage.payload;
                     
                     // check if the response status code is in list of accepted codes..
                     if(integrationData.response_map){
@@ -221,15 +227,18 @@ var callAppIntegration = function (integrationData, reqObj) {
                         }
 
                         responseObject.Message = responseObject.Message.replace(/{(.*)}/, function(match, placeholder){
-                            return placeholder.trim().split('.').reduce((o,i)=>o[i], responseObject.Result);
+                            return placeholder.trim().split('.').reduce((o,i)=>o[i], responseObject.ApiResponse);
                         });
-                    };
-                    
-                    if(Buffer.isBuffer(esbMessage.payload)){
-                        esbMessage.payload = esbMessage.payload.toString('utf8');
-                    }
+                    }else{
+                        // response map is not defined (a default integration?), so we get the response status from the EsbMessage
+                        responseObject.Message = esbMessage.status.message;
 
-                    responseObject.Result = esbMessage.payload;
+                        if(parseInt(esbMessage.status.code) >= 200 && parseInt(esbMessage.status.code) < 300){ //a 2** response
+                            responseObject.Success = true;
+                        }else{
+                            responseObject.Success = false;
+                        }
+                    }
                     
                     fulfill(responseObject);
                     return;
@@ -258,9 +267,9 @@ var callAppIntegration = function (integrationData, reqObj) {
                 }else{
                     paramVal = reqObj[param.referenceObject][param.referenceProperty];
                 }
-                
-                if(!paramVal){
-                    // paramter cannot be null , undefined, throw error!                    
+              
+                if(paramVal != "" && !paramVal){
+                    // paramter cannot be null , undefined, throw error! (but could be empty! as requested by the developer)                    
                     paramError = true;
                     break;
                 }else{
