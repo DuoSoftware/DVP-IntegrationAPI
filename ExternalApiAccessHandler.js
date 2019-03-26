@@ -9,7 +9,7 @@ var httpReq = require('request');
 var async = require('async');
 var externalProfileHandler = require('./ExternalProfileHandler.js');
 var url_util = require('url');
-var ESB = require('light-esb-node');
+var ESB = require('./light-esb-node.js');
 
 var traverseObject = function (obj, param, isInner) {
     var val = null;
@@ -201,7 +201,7 @@ var callAppIntegration = function (integrationData, reqObj) {
         let esbCallback = function(error,esbMessage){
             try{
                 if(error){
-                    reject(error);
+                    reject(error.cause);
                     return;
                 }else{
                     let responseObject = {
@@ -278,13 +278,27 @@ var callAppIntegration = function (integrationData, reqObj) {
             };
         };
 
+        console.log(integrationData);
+        console.log("------------------------------");
+
+        let authProperties = {};
+
+        if(integrationData.auth_type == "Basic"){
+            authProperties.auth_type = "Basic";
+            authProperties.user = integrationData.username;
+            authProperties.password = integrationData.password;
+        }else if(integrationData.auth_type == "Bearer"){
+            authProperties.auth_type = "Bearer";
+            authProperties.token = integrationData.token;
+        };
+
         if(paramError){
             esbCallback(new Error('Missing parameter value for ' + param.referenceObject + '.' + param.referenceProperty));
         }else{
             let ESBMessage = ESB.createMessage(paramObj.BODY);
             
             let loggerComponent = ESB.createLoggerComponent(esbCallback);
-            let requestComponent = ESB.createCallComponent(esbCallback, integrationData.url, integrationData.method, paramObj.PARAMS, paramObj.QUERY);
+            let requestComponent = ESB.createCallComponent(esbCallback, integrationData.url, integrationData.method, paramObj.PARAMS, paramObj.QUERY, authProperties);
             let resultComponent = ESB.createResultComponent(esbCallback);  
             
             requestComponent.connect(loggerComponent);
