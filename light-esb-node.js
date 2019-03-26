@@ -548,7 +548,24 @@ var ESBCallComponent = function(callback, requestURL, method, pathArguments, que
               };
               self.callback(errorInfo);
           });
-        }
+        }else if(this.method.toUpperCase()=='PUT'){
+            util.debugCall('Component: %o going to invoke PUT call: %s with options: %o', self, self.URL, options);
+            restClient.put(self.URL, options, function (responseBody, response){
+                var status = self._retrieveResponseStatus(response);
+                util.debugCall('Component: %o requesting %s received response %o with body %o', self, self.URL, status, responseBody);
+                message.payload = responseBody;
+                message.status = status;
+                util.debugComponent('Component: %o requesting %s received PUT response: %o', self, self.URL, status);
+                self.next(message);
+            }).on('error', function (err) {
+                var errorInfo = {
+                    component: self,
+                    message: message,
+                    cause: err
+                };
+                self.callback(errorInfo);
+            });
+          }
         else{
           util.debugCall('Component: %o - NOT SUPPORTED OPERATION: %s', self, this.method.toUpperCase());
         }
