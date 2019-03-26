@@ -108,6 +108,7 @@ var addDefaultIntegration = async function (appId, integrationData, companyId, t
 
     integrationData.company = companyId;
     integrationData.tenant = tenantId;
+    integrationData.app = appId;
 
     var IntegrationObj = Integration(integrationData);
 
@@ -134,6 +135,7 @@ var createAction = async function(appId, actionData, companyId, tenantId){
     try {
         actionData.integration.company = companyId;
         actionData.integration.tenant = tenantId;
+        actionData.integration.app = appId;
 
         let IntegrationObj = await Integration(actionData.integration).save();
 
