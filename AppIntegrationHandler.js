@@ -241,9 +241,11 @@ var deleteAppAction = function (appId, actionId, companyId, tenantId) {
 var getIntegrationById = function (reqId, id, companyId, tenantId) {
 
     var conditions = {_id: id, company: companyId, tenant: tenantId};
-    // var conditions = { _id: id };
+
     return new Promise(function (fulfill, reject) {
-        Integration.findOne(conditions, function (err, resp) {
+        Integration.findOne(conditions)
+        .populate('app')
+        .exec(function (err, resp) {
             if (err) {
                 reject(err);
             }

@@ -392,7 +392,7 @@ function createCombineComponent(variableName)
  * @param   {string}    basicAuthPassword - optional - basic auth password
  * @type {function}
  */
-var ESBCallComponent = function(callback, requestURL, method, pathArguments, queryParameters, authProperties){
+var ESBCallComponent = function(callback, requestURL, method, pathArguments, queryParameters, authProperties, requestProperties){
     // component fields
     if(isEvaluable(requestURL)){
       // remove leading '$'
@@ -489,6 +489,11 @@ var ESBCallComponent = function(callback, requestURL, method, pathArguments, que
             options.headers["Authorization"] = "Bearer " + authProperties.token
         }
 
+        //set timeout..
+        if(requestProperties && requestProperties.timeout){
+            options.requestConfig.timeout = requestProperties.timeout;
+        }
+
         restClient = new RESTClient(options);
 
         if(this.method.toUpperCase()=='GET'){
@@ -562,11 +567,11 @@ ESBCallComponent.prototype._retrieveResponseStatus = function (restClientRespons
     return httpStatus;
 };
 
-function createCallComponent(callback, host, URI, method, pathArguments, queryParameters, authProperties)
+function createCallComponent(callback, host, URI, method, pathArguments, queryParameters, authProperties, requestProperties)
 {
 
     //var component = new ESBComponent(function(){});
-    var component = new ESBCallComponent(callback, host, URI, method, pathArguments, queryParameters, authProperties);
+    var component = new ESBCallComponent(callback, host, URI, method, pathArguments, queryParameters, authProperties, requestProperties);
     return component;
 }
 

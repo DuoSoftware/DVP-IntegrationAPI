@@ -278,9 +278,6 @@ var callAppIntegration = function (integrationData, reqObj) {
             };
         };
 
-        console.log(integrationData);
-        console.log("------------------------------");
-
         let authProperties = {};
 
         if(integrationData.auth_type == "Basic"){
@@ -292,13 +289,26 @@ var callAppIntegration = function (integrationData, reqObj) {
             authProperties.token = integrationData.token;
         };
 
+        let requestProperties = {
+            timeout: 10000, //milliseconds,
+            trycount: 5
+        };
+
+        if(integrationData.app && integrationData.app.timeout){
+            requestProperties.timeout = parseInt(integrationData.app.timeout) * 1000;
+        }
+
+        if(integrationData.app && integrationData.app.trycount){
+            requestProperties.trycount = parseInt(integrationData.app.trycount);
+        }
+
         if(paramError){
             esbCallback(new Error('Missing parameter value for ' + param.referenceObject + '.' + param.referenceProperty));
         }else{
             let ESBMessage = ESB.createMessage(paramObj.BODY);
             
             let loggerComponent = ESB.createLoggerComponent(esbCallback);
-            let requestComponent = ESB.createCallComponent(esbCallback, integrationData.url, integrationData.method, paramObj.PARAMS, paramObj.QUERY, authProperties);
+            let requestComponent = ESB.createCallComponent(esbCallback, integrationData.url, integrationData.method, paramObj.PARAMS, paramObj.QUERY, authProperties, requestProperties);
             let resultComponent = ESB.createResultComponent(esbCallback);  
             
             requestComponent.connect(loggerComponent);
