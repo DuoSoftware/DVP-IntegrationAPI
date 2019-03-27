@@ -18,27 +18,24 @@
   "homepage": "https://github.com/DuoSoftware/DVP-IntegrationAPI#readme",
   "dependencies": {
     "async": "^2.1.2",
+    "async-request": "^1.2.0",
     "bluebird": "^3.4.6",
+    "clone": "2.1.1",
     "config": "^1.26.1",
+    "debug": "3.1.0",
     "dvp-common": "^1.5.2",
     "dvp-mongomodels": "^5.2.22",
     "mongoose-unique-validator": "^1.0.5",
+    "node-rest-client": "3.1.0",
     "node-uuid": "^1.4.8",
+    "object-mapper": "4.2.0",
     "q": "^1.5.0",
-    "request": "^2.81.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
     "restify": "^4.3.0",
     "restify-jwt": "^0.4.0",
+    "string-template": "^1.0.0",
     "underscore": "^1.8.3",
-    "url": "^0.11.0",
-    "clone": "2.1.1",
-    "debug": "3.1.0",
-    "node-rest-client": "3.1.0",
-    "object-mapper": "4.2.0"
+    "url": "^0.11.0"
   }
 }
-
-
-
-
-
-
