@@ -2,10 +2,11 @@
  * Created by dinusha on 11/16/2016.
  */
 var Promise = require('bluebird');
+var db = require('dvp-mongomodels');
 var IntegrationData = require('dvp-mongomodels/model/IntegrationData').IntegrationData;
+var AppData = require('dvp-mongomodels/model/AppData');
 var ReportEmail = require('dvp-mongomodels/model/ReportEmailConfig').ReportEmailConfig;
-var mongoose = require('mongoose');
-mongoose.Promise = require('bluebird');
+
 
 var saveIntegrationAPIDetails = function (reqId, apiInfo, companyId, tenantId) {
     return new Promise(function (fulfill, reject) {
