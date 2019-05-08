@@ -41,6 +41,10 @@ module.exports = {
    "Services": {
         "userserviceurl": "SYS_USERSERVICE_HOST",
         "userserviceport": "SYS_USERSERVICE_PORT",
-        "userserviceversion": "SYS_USERSERVICE_VERSION"
+        "userserviceversion": "SYS_USERSERVICE_VERSION",
+        "accessToken": "HOST_TOKEN",
+        "eventtriggerservicehost": "SYS_EVENTTRIGGERSERVICE_HOST",
+        "eventtriggerserviceport": "SYS_EVENTTRIGGERSERVICE_PORT",
+        "eventtriggerserviceversion": "SYS_EVENTTRIGGERSERVICE_VERSION"
  }
 };
