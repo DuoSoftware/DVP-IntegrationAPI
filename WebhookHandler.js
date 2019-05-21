@@ -58,7 +58,7 @@ const webhookHandler = {
 
         if(enabledStatus === true){
             //subscribe
-            let subscription = await this.subscribeWebhook(webhook.event_type);
+            let subscription = await this.subscribeWebhook(webhook.event_type, companyId, tenantId);
             console.log(subscription);
 
             if(subscription.hasOwnProperty("id")){
@@ -71,7 +71,7 @@ const webhookHandler = {
             }
         } else {
             //unsubscribe
-            let subscription = await this.unsubscribeWebhook(webhook.uuid, webhook.event_type);
+            let subscription = await this.unsubscribeWebhook(webhook.uuid, webhook.event_type, companyId, tenantId);
             
             if(subscription.hasOwnProperty("subscribeData")){
                 webhook.uuid = undefined;
@@ -84,12 +84,13 @@ const webhookHandler = {
         }
     },
 
-    subscribeWebhook: function(event_type){
+    subscribeWebhook: function(event_type, company, tenant){
         
         let options = {
             url: eventServiceURL + "/Subscribe",
             headers: {
-                'authorization': 'Bearer ' + config.Services.accessToken
+                'authorization': 'Bearer ' + config.Services.accessToken,
+                'CompanyInfo': tenant + ':' + company
             },
             body: {
                 eventType: event_type.toUpperCase()
@@ -109,12 +110,13 @@ const webhookHandler = {
         );
     },
 
-    unsubscribeWebhook: function(id, event_type){
+    unsubscribeWebhook: function(id, event_type, company, tenant){
         
         let options = {
             url: eventServiceURL + "/UnSubscribe/" + id,
             headers: {
-                'authorization': 'Bearer ' + config.Services.accessToken
+                'authorization': 'Bearer ' + config.Services.accessToken,
+                'CompanyInfo': tenant + ':' + company
             },
             qs: {
                 eventType: event_type.toUpperCase()
