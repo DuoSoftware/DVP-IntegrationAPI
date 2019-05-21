@@ -10,12 +10,12 @@ const util = require('util');
 
 mongoose.Promise = Promise;
 
-let eventServiceURL = "http://%s:%s/DVP/API/%s/EventTrigger";
+let eventServiceURL = "";
 
 if (validator.isIP(config.Services.eventtriggerservicehost)) {
-    eventServiceURL = util.format(eventServiceURL, config.Services.eventtriggerservicehost, config.Services.eventtriggerserviceport, config.Services.eventtriggerserviceversion);
+    eventServiceURL = util.format("http://%s:%s/DVP/API/%s/EventTrigger", config.Services.eventtriggerservicehost, config.Services.eventtriggerserviceport, config.Services.eventtriggerserviceversion);
 }else{
-    eventServiceURL = util.format(eventServiceURL,  config.Services.eventtriggerservicehost, config.Services.eventtriggerserviceversion);
+    eventServiceURL = util.format("http://%s/DVP/API/%s/EventTrigger",  config.Services.eventtriggerservicehost, config.Services.eventtriggerserviceversion);
 }
 
 const webhookHandler = {
