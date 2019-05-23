@@ -58,7 +58,7 @@ const webhookHandler = {
 
         if(enabledStatus === true){
             //subscribe
-            let subscription = await this.subscribeWebhook(webhook.event_type, companyId, tenantId);
+            let subscription = await this.subscribeWebhook(webhook.event_type, webhook.url, companyId, tenantId);
             console.log(subscription);
 
             if(subscription.hasOwnProperty("id")){
@@ -84,7 +84,7 @@ const webhookHandler = {
         }
     },
 
-    subscribeWebhook: function(event_type, company, tenant){
+    subscribeWebhook: function(event_type, url, company, tenant){
         
         let options = {
             url: eventServiceURL + "/Subscribe",
@@ -93,7 +93,8 @@ const webhookHandler = {
                 'CompanyInfo': tenant + ':' + company
             },
             body: {
-                eventType: event_type.toUpperCase()
+                eventType: event_type.toUpperCase(),
+                hookUrl: url
             },
             json:true
         };
