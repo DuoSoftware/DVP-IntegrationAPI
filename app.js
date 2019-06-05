@@ -14,6 +14,7 @@ var jwt = require('restify-jwt');
 var secret = require('dvp-common/Authentication/Secret.js');
 var authorization = require('dvp-common/Authentication/Authorization.js');
 var util = require('util');
+var webhookHandler = require('./WebhookHandler.js');
 
 
 var server = restify.createServer({
@@ -945,6 +946,208 @@ server.get('/DVP/API/:version/IntegrationAPI/Profile/External/:Reference', autho
     {
         var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
         logger.error('getAdditionalProfileData - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.get('/DVP/API/:version/IntegrationAPI/Webhooks', authorization({resource:"integration", action:"read"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try {
+        logger.info('[DVP-IntegrationAPI.GetWebhooks] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+
+        if (!companyId || !tenantId) {
+            throw new Error("Invalid company or tenant");
+        }
+
+        webhookHandler.getWebhooks(companyId, tenantId)
+            .then(function(resp) {
+                var jsonString = messageFormatter.FormatMessage(null, "Webhooks retrieved successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.GetWebhooks] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err) {
+                var jsonString = messageFormatter.FormatMessage(err, "Error getting data", false, null);
+                logger.error('[DVP-IntegrationAPI.GetWebhooks] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+
+    } catch(ex) {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.GetWebhooks] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.post('/DVP/API/:version/IntegrationAPI/Webhooks', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try {
+        logger.info('[DVP-IntegrationAPI.CreateWebhook] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+
+        var data = req.body;
+
+        if (!companyId || !tenantId) {
+            throw new Error("Invalid company or tenant");
+        }
+
+        webhookHandler.createWebhook(data, companyId, tenantId)
+            .then(function(resp) {
+                var jsonString = messageFormatter.FormatMessage(null, "Webhooks created successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.CreateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+            .catch(function(err) {
+                var jsonString = messageFormatter.FormatMessage(err, "Error saving data", false, null);
+                logger.error('[DVP-IntegrationAPI.CreateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+
+    } catch(ex) {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.CreateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.put('/DVP/API/:version/IntegrationAPI/Webhooks/:id', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.UpdateWebhook] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var data = req.body;
+        var webhookId = req.params.id;
+
+        if (!companyId || !tenantId)
+        {
+            throw new Error("Invalid company or tenant");
+        }
+
+        webhookHandler.updateWebhook(webhookId, data, companyId, tenantId)
+            .then(function(resp) {
+                if(!resp){
+                    throw(new Error('No webhook found for id!'));
+                };
+
+                var jsonString = messageFormatter.FormatMessage(null, "Webhook updated successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.UpdateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            }) 
+            .catch(function(err)
+            {
+                var jsonString = messageFormatter.FormatMessage(err, "Error updating", false, null);
+                logger.error('[DVP-IntegrationAPI.UpdateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.UpdateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.put('/DVP/API/:version/IntegrationAPI/Webhooks/:id/status', authorization({resource:"integration", action:"write"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try
+    {
+        logger.info('[DVP-IntegrationAPI.UpdateWebhookStatus] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var data = req.body;
+        var webhookId = req.params.id;
+
+        if (!companyId || !tenantId) {
+            throw new Error("Invalid company or tenant");
+        }
+
+        webhookHandler.updateWebhookStatus(webhookId, data.enabledStatus, companyId, tenantId)
+            .then(function(resp) {
+                if(!resp){
+                    throw(new Error('No webhook found for id!'));
+                };
+
+                var jsonString = messageFormatter.FormatMessage(null, "Webhook status updated successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.UpdateWebhookStatus] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+
+            }) 
+            .catch(function(err) {
+                var jsonString = messageFormatter.FormatMessage(err, "Error updating status", false, null);
+                logger.error('[DVP-IntegrationAPI.UpdateWebhookStatus] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+
+    }
+    catch(ex)
+    {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.UpdateWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+        res.end(jsonString);
+    }
+
+    return next();
+});
+
+server.del('/DVP/API/:version/IntegrationAPI/Webhooks/:id', authorization({resource:"integration", action:"delete"}), function(req, res, next)
+{
+    var reqId = uuid.v1();
+    try {
+        logger.info('[DVP-IntegrationAPI.DeleteWebhook] - [%s] - HTTP Request Received', reqId);
+
+        var companyId = req.user.company;
+        var tenantId = req.user.tenant;
+        var id = req.params.id;
+
+        if (!companyId || !tenantId) {
+            throw new Error("Invalid company or tenant");
+        }
+
+        webhookHandler.deleteWebhook(id, companyId, tenantId)
+            .then(function(resp) {
+
+                if(!resp)
+                    throw(new Error('No webhook found for id!'));
+
+                var jsonString = messageFormatter.FormatMessage(null, "Webhook deleted successfully", true, resp);
+                logger.info('[DVP-IntegrationAPI.DeleteWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+            .catch(function(err) {
+                var jsonString = messageFormatter.FormatMessage(err, "Error saving", false, null);
+                logger.error('[DVP-IntegrationAPI.DeleteWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
+                res.end(jsonString);
+            })
+    }
+    catch(ex) {
+        var jsonString = messageFormatter.FormatMessage(ex, "ERROR", false, null);
+        logger.error('[DVP-IntegrationAPI.DeleteWebhook] - [%s] - API RESPONSE : %s', reqId, jsonString);
         res.end(jsonString);
     }
 

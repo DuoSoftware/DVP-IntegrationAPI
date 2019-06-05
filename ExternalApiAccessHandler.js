@@ -141,7 +141,12 @@ var callApiMethod = function (reqId, apiInfo, inputObject, callback) {
                 }
             }
             else {
-                callback(null, null);
+                // callback(null, null);
+                if(error){
+                    callback("Error: " + error.message, null);
+                }else{
+                    callback("Error: " + options.url, null);
+                }
             }
         })
     }
@@ -171,21 +176,32 @@ var generateAPICalls = function (reqId, apiDetails, inputObject) {
             asyncFunctionArr.push(callApiMethod.bind(this, reqId, apiInfo, inputObject));
         });
 
-        async.parallel(asyncFunctionArr, function (err, results) {
+        async.parallel(async.reflectAll(asyncFunctionArr), function (err, results) {
             if (err) {
                 reject(err);
             }
             else {
 
-                var reply = [];
+                console.log(results);
+
+                var reply = {
+                    'data': [],
+                    'failedRequests': []
+                };
+
                 results.map(function (item) {
-                    if (Array.isArray(item)) {
-                        item.map(function (data) {
-                            reply.push(data);
-                        })
-                    }
-                    else {
-                        reply.push(item);
+
+                    if(item.error){
+                        reply.failedRequests.push(item.error);
+                    }else{
+                        if (Array.isArray(item.value)) {
+                            item.value.map(function (data) {
+                                reply.data.push(data);
+                            })
+                        }
+                        else {
+                            reply.data.push(item.value);
+                        }
                     }
 
                 });
