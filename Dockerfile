@@ -7,11 +7,20 @@
 
 #EXPOSE 8882
 
-FROM node:9.9.0
-ARG VERSION_TAG
-RUN git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-IntegrationAPI.git /usr/local/src/integrationapi
-RUN cd /usr/local/src/integrationapi;
+# FROM node:9.9.0
+# ARG VERSION_TAG
+# RUN git clone -b $VERSION_TAG https://github.com/DuoSoftware/DVP-IntegrationAPI.git /usr/local/src/integrationapi
+# RUN cd /usr/local/src/integrationapi;
+# WORKDIR /usr/local/src/integrationapi
+# RUN npm install
+# EXPOSE 8882
+# CMD [ "node", "/usr/local/src/integrationapi/app.js" ]
+
+FROM node:10-alpine
 WORKDIR /usr/local/src/integrationapi
+COPY package*.json ./
 RUN npm install
+COPY . .
 EXPOSE 8882
-CMD [ "node", "/usr/local/src/integrationapi/app.js" ]
+CMD [ "node", "app.js" ]
+
