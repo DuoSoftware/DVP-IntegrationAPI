@@ -39,6 +39,5 @@ module.exports = {
     eventtriggerservicehost: "SYS_EVENTTRIGGERSERVICE_HOST",
     eventtriggerserviceport: "SYS_EVENTTRIGGERSERVICE_PORT",
     eventtriggerserviceversion: "SYS_EVENTTRIGGERSERVICE_VERSION",
-    dynamicPort: true,
   },
 };
