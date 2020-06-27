@@ -13,7 +13,7 @@ module.exports = {
   },
   Host: {
     ip: "0.0.0.0",
-    port: "2622",
+    port: "8882",
     version: "1.0.0.0",
     token: "",
   },
