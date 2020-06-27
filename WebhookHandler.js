@@ -1,150 +1,160 @@
 /**
  * Created by Nimeshka on 6/5/2019
  */
-const mongoose = require('mongoose');
-const Webhook = require('dvp-mongomodels/model/Webhook');
-const config = require('config');
-const request = require('request');
-const validator = require('validator');
-const util = require('util');
+const mongoose = require("mongoose");
+const Webhook = require("dvp-mongomodels/model/Webhook");
+const config = require("config");
+const request = require("request");
+const validator = require("validator");
+const util = require("util");
 
 mongoose.Promise = Promise;
 
 let eventServiceURL = "";
 
-if (validator.isIP(config.Services.eventtriggerservicehost)) {
-    eventServiceURL = util.format("http://%s:%s/DVP/API/%s/EventTrigger", config.Services.eventtriggerservicehost, config.Services.eventtriggerserviceport, config.Services.eventtriggerserviceversion);
-}else{
-    eventServiceURL = util.format("http://%s/DVP/API/%s/EventTrigger",  config.Services.eventtriggerservicehost, config.Services.eventtriggerserviceversion);
+if (
+  config.Services.dynamicPort ||
+  validator.isIP(config.Services.eventtriggerservicehost)
+) {
+  eventServiceURL = util.format(
+    "http://%s:%s/DVP/API/%s/EventTrigger",
+    config.Services.eventtriggerservicehost,
+    config.Services.eventtriggerserviceport,
+    config.Services.eventtriggerserviceversion
+  );
+} else {
+  eventServiceURL = util.format(
+    "http://%s/DVP/API/%s/EventTrigger",
+    config.Services.eventtriggerservicehost,
+    config.Services.eventtriggerserviceversion
+  );
 }
 
 const webhookHandler = {
-    
-    getWebhooks: function (companyId, tenantId) {
-        return Webhook.find({
-                            company: companyId, 
-                            tenant: tenantId
-                        });
-    },
+  getWebhooks: function (companyId, tenantId) {
+    return Webhook.find({
+      company: companyId,
+      tenant: tenantId,
+    });
+  },
 
-    createWebhook: function (data, companyId, tenantId) {
-        let webhook = Webhook(data);
+  createWebhook: function (data, companyId, tenantId) {
+    let webhook = Webhook(data);
 
-        webhook.company = companyId;
-        webhook.tenant = tenantId;
+    webhook.company = companyId;
+    webhook.tenant = tenantId;
 
-        return webhook.save();
-    },
+    return webhook.save();
+  },
 
-    updateWebhook: function (id, data, companyId, tenantId) {
-        return Webhook.findOneAndUpdate({ 
-                                        company: companyId, 
-                                        tenant: tenantId, 
-                                        _id: id 
-                                    }, 
-                                        data
-                                    );
-    },
+  updateWebhook: function (id, data, companyId, tenantId) {
+    return Webhook.findOneAndUpdate(
+      {
+        company: companyId,
+        tenant: tenantId,
+        _id: id,
+      },
+      data
+    );
+  },
 
-    updateWebhookStatus: async function (id, enabledStatus, companyId, tenantId) {
+  updateWebhookStatus: async function (id, enabledStatus, companyId, tenantId) {
+    let webhook = await Webhook.findOne({
+      _id: id,
+      company: companyId,
+      tenant: tenantId,
+    });
 
-        let webhook = await Webhook.findOne({
-                                    _id: id,
-                                    company: companyId, 
-                                    tenant: tenantId
-                                });
+    if (!webhook) return false;
 
-        if(!webhook) return false;
+    if (enabledStatus === true) {
+      //subscribe
+      let subscription = await this.subscribeWebhook(
+        webhook.event_type,
+        webhook.url,
+        companyId,
+        tenantId
+      );
+      console.log(subscription);
 
-        if(enabledStatus === true){
-            //subscribe
-            let subscription = await this.subscribeWebhook(webhook.event_type, webhook.url, companyId, tenantId);
-            console.log(subscription);
+      if (subscription.hasOwnProperty("id")) {
+        webhook.uuid = subscription.id;
+        webhook.is_enabled = true;
+        webhook.save();
+        return true;
+      } else {
+        throw new Error("Invalid response from Event Trigger service!");
+      }
+    } else {
+      //unsubscribe
+      let subscription = await this.unsubscribeWebhook(
+        webhook.uuid,
+        webhook.event_type,
+        companyId,
+        tenantId
+      );
 
-            if(subscription.hasOwnProperty("id")){
-                webhook.uuid = subscription.id;
-                webhook.is_enabled = true;
-                webhook.save();
-                return true;
-            }else{
-                throw(new Error("Invalid response from Event Trigger service!"));
-            }
-        } else {
-            //unsubscribe
-            let subscription = await this.unsubscribeWebhook(webhook.uuid, webhook.event_type, companyId, tenantId);
-            
-            if(subscription.hasOwnProperty("subscribeData")){
-                webhook.uuid = undefined;
-                webhook.is_enabled = false;
-                webhook.save();
-                return true;
-            }else{
-                throw(new Error("Invalid response from Event Trigger service!"));
-            }
-        }
-    },
-
-    subscribeWebhook: function(event_type, url, company, tenant){
-        
-        let options = {
-            url: eventServiceURL + "/Subscribe",
-            headers: {
-                'authorization': 'Bearer ' + config.Services.accessToken,
-                'CompanyInfo': tenant + ':' + company
-            },
-            body: {
-                eventType: event_type.toUpperCase(),
-                hookUrl: url
-            },
-            json:true
-        };
-
-        return new Promise(
-            function (resolve, reject) {
-                request.post(options, function (error, response, body) {
-                    if(error)
-                        return reject(error);
-                    return resolve(response.body);
-                });
-
-            }
-        );
-    },
-
-    unsubscribeWebhook: function(id, event_type, company, tenant){
-        
-        let options = {
-            url: eventServiceURL + "/UnSubscribe/" + id,
-            headers: {
-                'authorization': 'Bearer ' + config.Services.accessToken,
-                'CompanyInfo': tenant + ':' + company
-            },
-            qs: {
-                eventType: event_type.toUpperCase()
-            },
-            json:true
-        };
-
-        return new Promise(
-            function (resolve, reject) {
-                request.delete(options, function (error, response, body) {
-                    if(error)
-                        return reject(error);
-                    return resolve(response.body);
-                });
-
-            }
-        );
-    },
-    
-    deleteWebhook: function (id, companyId, tenantId) {
-        return Webhook.findOneAndRemove({
-                                        _id: id, 
-                                        company: companyId, 
-                                        tenant: tenantId
-                                    });
+      if (subscription.hasOwnProperty("subscribeData")) {
+        webhook.uuid = undefined;
+        webhook.is_enabled = false;
+        webhook.save();
+        return true;
+      } else {
+        throw new Error("Invalid response from Event Trigger service!");
+      }
     }
+  },
 
-}
+  subscribeWebhook: function (event_type, url, company, tenant) {
+    let options = {
+      url: eventServiceURL + "/Subscribe",
+      headers: {
+        authorization: "Bearer " + config.Services.accessToken,
+        CompanyInfo: tenant + ":" + company,
+      },
+      body: {
+        eventType: event_type.toUpperCase(),
+        hookUrl: url,
+      },
+      json: true,
+    };
+
+    return new Promise(function (resolve, reject) {
+      request.post(options, function (error, response, body) {
+        if (error) return reject(error);
+        return resolve(response.body);
+      });
+    });
+  },
+
+  unsubscribeWebhook: function (id, event_type, company, tenant) {
+    let options = {
+      url: eventServiceURL + "/UnSubscribe/" + id,
+      headers: {
+        authorization: "Bearer " + config.Services.accessToken,
+        CompanyInfo: tenant + ":" + company,
+      },
+      qs: {
+        eventType: event_type.toUpperCase(),
+      },
+      json: true,
+    };
+
+    return new Promise(function (resolve, reject) {
+      request.delete(options, function (error, response, body) {
+        if (error) return reject(error);
+        return resolve(response.body);
+      });
+    });
+  },
+
+  deleteWebhook: function (id, companyId, tenantId) {
+    return Webhook.findOneAndRemove({
+      _id: id,
+      company: companyId,
+      tenant: tenantId,
+    });
+  },
+};
 
 module.exports = webhookHandler;
