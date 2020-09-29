@@ -23,7 +23,7 @@ module.exports = {
     dbname: "",
     password: "",
     user: "",
-    type: "mongodb+srv",
+    type: "mongodb",
   },
   Services: {
     userserviceurl: "SYS_USERSERVICE_HOST",
